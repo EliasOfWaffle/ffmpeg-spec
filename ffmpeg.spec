@@ -18,11 +18,11 @@
 %endif
 
 %ifarch x86_64
-%bcond_without vpl
-%bcond_without vmaf
+%bcond_without vpl  
+%bcond_without vmaf 
 %else
 %bcond_with vpl
-%bcond_with vmaf
+%bcond_with vmaf 
 %endif
 
 %ifarch s390 s390x
@@ -512,8 +512,7 @@ pixel format conversion operations.
 
 This subpackage contains the headers for FFmpeg libswscale.
 
-%autosetup -a1 -p1
-# fix -O3 -g in host_cflags
+%autosetup -S git -n cartwheel-ffmpeg-2023q2.tar.gz
 sed -i "s|check_host_cflags -O3|check_host_cflags %{optflags}|" configure
 install -m0755 -d _doc/examples
 cp -a doc/examples/{*.c,Makefile,README} _doc/examples/
@@ -566,22 +565,16 @@ cp -a doc/examples/{*.c,Makefile,README} _doc/examples/
     --enable-libcdio \
     --enable-libcodec2 \
     --enable-libdav1d \
-%if %{with dc1394}
     --enable-libdc1394 \
-%endif
     --enable-libdrm \
     --enable-libfdk-aac \
-%if %{with flite}
     --enable-libflite \
-%endif
     --enable-libfontconfig \
     --enable-libfreetype \
     --enable-libfribidi \
     --enable-libgme \
     --enable-libgsm \
-%if %{with dc1394}
     --enable-libiec61883 \
-%endif
     --enable-libilbc \
     --enable-libjack \
     --enable-libjxl \
@@ -611,9 +604,7 @@ cp -a doc/examples/{*.c,Makefile,README} _doc/examples/
     --enable-libtheora \
     --enable-libtwolame \
     --enable-libvidstab \
-%if %{with vmaf}
     --enable-libvmaf \
-%endif
     --enable-libvorbis \
     --enable-libv4l2 \
     --enable-libvpx \
@@ -622,43 +613,24 @@ cp -a doc/examples/{*.c,Makefile,README} _doc/examples/
     --enable-libzimg \
     --enable-libzmq \
     --enable-libzvbi \
-%if %{with lto}
-  --enable-lto \
-%endif
-%if %{with vpl}
+    --enable-lto \
     --enable-libvpl \
-%endif
     --enable-lv2 \
     --enable-vaapi \
     --enable-vdpau \
     --enable-libopencore-amrnb \
     --enable-libopencore-amrwb \
     --enable-libvo-amrwbenc \
-%if %{with x264}
     --enable-libx264 \
-%endif
-%if %{with x265}
     --enable-libx265 \
-%endif
-%if %{with librtmp}
     --enable-librtmp \
-%endif
     --enable-libxvid \
     --enable-openal \
     --enable-opencl \
     --enable-opengl \
     --enable-pthreads \
     --enable-vapoursynth \
-%if %{without all_codecs}
-    --enable-muxers \
-    --enable-demuxers \
-    --enable-hwaccels \
-    --disable-encoders \
-    --disable-decoders \
-    --disable-decoder="h264,hevc,vc1" \
-    --enable-encoder="$(perl -pe 's{^(\w*).*}{$1,}gs' <enable_encoders)" \
-    --enable-decoder="$(perl -pe 's{^(\w*).*}{$1,}gs' <enable_decoders)" \
-%endif
+    
 %ifarch %{power64}
 %ifarch ppc64
     --cpu=g5 \
@@ -688,28 +660,7 @@ cp -a doc/examples/{*.c,Makefile,README} _doc/examples/
     --enable-neon \
 %endif
 %endif
-    || cat ffbuild/config.log
 
-cat config.h
-cat config_components.h
-
-# Paranoia check
-%if %{without all_codecs}
-# DECODER
-for i in H264 HEVC HEVC_RKMPP VC1; do
-    grep -q "#define CONFIG_${i}_DECODER 0" config_components.h
-done
-
-# ENCODER
-for i in LIBX264 LIBX264RGB LIBX265; do
-    grep -q "#define CONFIG_${i}_ENCODER 0" config_components.h
-done
-for i in H264 HEVC; do
-    for j in MF VIDEOTOOLBOX; do
-        grep -q "#define CONFIG_${i}_${j}_ENCODER 0" config_components.h
-    done
-done
-%endif
 
 %make_build V=1
 %make_build documentation V=1
