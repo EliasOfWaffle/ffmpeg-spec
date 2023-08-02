@@ -1,6 +1,6 @@
 # For a complete build enable these two
-%bcond_with upstream_tarball
-%bcond_with all_codecs
+%bcond_with upstream_tarball 1
+%bcond_with all_codecs 1
 
 # Break dependency cycles by disabling certain optional dependencies.
 %bcond_with bootstrap
@@ -87,43 +87,20 @@
 %global postproc_soversion 57
 %global swresample_soversion 4
 %global swscale_soversion 7
-
-Name:           ffmpeg
+%global original_name ffmpeg
+Name:           ffmpeg-cartwheel
+Provides:       ffmpeg
 %global pkg_name %{name}%{?pkg_suffix}
-
 Version:        6.0
-Release:        4%{?dist}
+Release:        2023Q2.1%{?dist}
 Summary:        A complete solution to record, convert and stream audio and video
 License:        GPL-3.0-or-later
 URL:            https://ffmpeg.org/
-Source0:        ffmpeg%{?pkg_suffix}-%{version}.tar.xz
-Source1:        ffmpeg-dlopen-headers.tar.xz
-Source2:        https://ffmpeg.org/releases/ffmpeg-%{version}.tar.xz.asc
+Source1:        https://codeload.github.com/intel/cartwheel-ffmpeg/tar.gz/refs/tags/2023q2
 # https://ffmpeg.org/ffmpeg-devel.asc
 # gpg2 --import --import-options import-export,import-minimal ffmpeg-devel.asc > ./ffmpeg.keyring
-Source3:        ffmpeg.keyring
-Source4:        ffmpeg_free_sources
-Source20:       enable_decoders
-Source21:       enable_encoders
-# Scripts for generating tarballs
-Source90:       ffmpeg_update_free_sources.sh
-Source91:       ffmpeg_gen_free_tarball.sh
-Source92:       ffmpeg_get_dlopen_headers.sh
-Source93:       ffmpeg_find_free_source_headers.sh
-
-# Fixes for reduced codec selection on free build
-Patch1:         ffmpeg-codec-choice.patch
-# Better error messages for free build
-Patch2:         ffmpeg-new-coder-errors.patch
-# Allow to build with fdk-aac-free
-# See https://bugzilla.redhat.com/show_bug.cgi?id=1501522#c112
-Patch3:         ffmpeg-allow-fdk-aac-free.patch
-# Backport upstream patches for libplacebo v5.264
-Patch4:         0001-avfilter-vf_libplacebo-wrap-deprecated-opts-in-FF_AP.patch
-Patch5:         0001-avfilter-vf_libplacebo-remove-deprecated-field.patch
 
 # Set up dlopen for openh264
-Patch1001:      ffmpeg-dlopen-openh264.patch
 
 Requires:       libavcodec%{?pkg_suffix}%{_isa} = %{version}-%{release}
 Requires:       libavdevice%{?pkg_suffix}%{_isa} = %{version}-%{release}
@@ -535,14 +512,7 @@ pixel format conversion operations.
 
 This subpackage contains the headers for FFmpeg libswscale.
 
-%prep
-%if %{with upstream_tarball}
-gpgv2 --quiet --keyring %{SOURCE3} %{SOURCE2} %{SOURCE0}
-%endif
-
 %autosetup -a1 -p1
-install -m 0644 %{SOURCE20} enable_decoders
-install -m 0644 %{SOURCE21} enable_encoders
 # fix -O3 -g in host_cflags
 sed -i "s|check_host_cflags -O3|check_host_cflags %{optflags}|" configure
 install -m0755 -d _doc/examples
